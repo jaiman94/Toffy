@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Tailwind v4 custom theme colors */
+@theme {
+  --color-primary-orange: #E07B39;
+  --color-primary-orange-hover: #C86A2E;
+  --color-bg-cream: #FDF6F0;
+  --color-bg-orange: #F5DCC7;
+  --color-success-green: #2E5A4C;
+  --color-success-green-light: #E8F5E9;
+}
+
 /* Custom CSS for safe areas and mobile */
 .pt-safe-top {
   padding-top: env(safe-area-inset-top);
@@ -42,8 +52,15 @@ button {
 
 /* Animation classes */
 @keyframes typing {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 .typing-dot {

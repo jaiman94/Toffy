@@ -20,9 +20,6 @@ export default {
           'green-light': '#E8F5E9',
         },
       },
-      fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-      },
       animation: {
         'fade-in': 'fadeIn 0.4s ease-out forwards',
         'fade-in-up': 'fadeInUp 0.4s ease-out forwards',
