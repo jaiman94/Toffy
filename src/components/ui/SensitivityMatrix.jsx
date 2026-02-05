@@ -4,11 +4,11 @@ import { PawPrint, Check, Volume2, Hand, Zap, UtensilsCrossed, Bone } from 'luci
 
 // Icon mapping for sensitivity items
 const iconMap = {
-  food_bowl: UtensilsCrossed,
+  food: UtensilsCrossed,
   touch: Hand,
-  sudden: Zap,
-  loud: Volume2,
-  toys: Bone,
+  movement: Zap,
+  noise: Volume2,
+  possessions: Bone,
 };
 
 export const SensitivityMatrix = ({

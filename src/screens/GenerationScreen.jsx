@@ -16,10 +16,10 @@ export const GenerationScreen = ({ onNext, data }) => {
           return prev + 1;
         }
         clearInterval(interval);
-        setTimeout(onNext, 1500);
+        setTimeout(onNext, 2000);
         return prev;
       });
-    }, 1200);
+    }, 1500);
 
     return () => clearInterval(interval);
   }, [onNext]);
@@ -76,14 +76,14 @@ export const GenerationScreen = ({ onNext, data }) => {
         transition={{ delay: 0.3 }}
         className="text-center text-gray-600 text-base mb-8 max-w-xs"
       >
-        Thanks for sharing, give me a moment while I process this information...
+        {`Let me analyze ${dogName}'s profile and build a plan...`}
       </motion.p>
 
       {/* Progress Steps */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.6 }}
         className="w-full max-w-xs space-y-3"
       >
         {GENERATION_STEPS.map((step, idx) => {

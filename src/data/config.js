@@ -331,7 +331,11 @@ export const ONBOARDING_FLOW = [
       };
       return summaries[value] || label;
     },
-    acknowledgement: "Got it! That helps me understand your space. 🏠",
+    acknowledgementMap: {
+      'house_yard': "A yard is a huge advantage for training. We'll put it to good use.",
+      'apt_balcony': "Balcony space helps! We'll adapt exercises for apartment living.",
+      'apt_no_outdoor': "No yard? No problem. Some of our best results come from apartment training.",
+    },
   },
 
   // Step 3: Main training goal (Visual Grid)
@@ -355,7 +359,12 @@ export const ONBOARDING_FLOW = [
       };
       return summaries[value] || `My main goal is ${label.toLowerCase()}`;
     },
-    acknowledgement: "That's our most requested goal — great choice! 🎯",
+    acknowledgementMap: {
+      'potty': "Potty training is the #1 reason people come to us — and it's one of the fastest to fix.",
+      'leash': "Leash issues are so common. The good news? Most dogs improve dramatically in under 2 weeks.",
+      'obedience': "Smart move starting with the basics. Everything else builds on a solid obedience foundation.",
+      'behavior': "Behavior issues can feel overwhelming, but they almost always have a clear root cause. Let's find it.",
+    },
   },
 
   // --- NEW: Leadership Assessment Part 1 ---
@@ -364,6 +373,7 @@ export const ONBOARDING_FLOW = [
     type: 'intro',
     message: "Now let's understand your relationship with {name}. These questions help me see the pack dynamics.",
     buttonText: "Let's go",
+    credential: "These questions come from canine behavioral research on pack dynamics",
   },
   {
     id: 'leadership_1',
@@ -415,6 +425,7 @@ export const ONBOARDING_FLOW = [
     type: 'intro',
     message: "Great! Now let's check if {name} is getting the essentials every dog needs.",
     buttonText: "Check essentials",
+    credential: "Based on veterinary behavioral guidelines",
   },
   {
     id: 'five_things',
@@ -433,7 +444,12 @@ export const ONBOARDING_FLOW = [
       if (yesCount >= 3) return `{name} is getting ${yesCount}/5 essentials`;
       return `{name} may be missing some key needs (${yesCount}/5)`;
     },
-    acknowledgement: "Perfect! Almost done... 🙌",
+    dynamicAcknowledgement: (answers) => {
+      const yesCount = Object.values(answers).filter(Boolean).length;
+      if (yesCount === 5) return "That's rare — most owners miss at least one. Great job covering all the bases.";
+      if (yesCount >= 3) return `${yesCount} out of 5 is solid. Those gaps are likely connected to what you're experiencing.`;
+      return "Those gaps are likely connected to what you're experiencing. We'll address them in your plan.";
+    },
   },
 
   // --- Sensitivities Assessment (Matrix) ---
@@ -460,6 +476,12 @@ export const ONBOARDING_FLOW = [
       if (reactiveCount === 1) return '{name} has 1 sensitivity area';
       return `{name} has ${reactiveCount} sensitivity areas`;
     },
+    dynamicAcknowledgement: (values) => {
+      const reactiveCount = Object.values(values).filter(v => v > 50).length;
+      if (reactiveCount === 0) return "Low reactivity is a great foundation. This makes training much smoother.";
+      if (reactiveCount <= 2) return "A couple of reactive spots is normal. We'll build desensitization into your plan.";
+      return "Multiple sensitivities means we need a careful, structured approach. Your plan will account for each one.";
+    },
   },
 
   // Step: Severity slider (combines severity + frequency)
@@ -478,6 +500,11 @@ export const ONBOARDING_FLOW = [
       if (value <= 75) return "It's becoming a serious problem";
       return "It's a severe issue that happens constantly";
     },
+    dynamicAcknowledgement: (value) => {
+      if (value <= 30) return "Catching it early is smart. Mild issues are the easiest to correct before they become habits.";
+      if (value <= 60) return "Moderate issues are the sweet spot for training — noticeable enough to stay motivated, but very fixable.";
+      return "This is really impacting your daily life. The plan will prioritize quick wins first so you see relief fast.";
+    },
   },
 
   // Step: Training time (Visual Grid)
@@ -492,6 +519,11 @@ export const ONBOARDING_FLOW = [
       { emoji: '⏱️', label: '30+ min', value: '30+' },
     ],
     summaryTemplate: (value) => `I can train ${value} minutes daily`,
+    acknowledgementMap: {
+      '5-10': "Even 5-10 minutes of focused training beats an hour of unfocused work. We'll make every minute count.",
+      '15-30': "This isn't a quick fix — but with 15-30 min/day for 3-4 weeks, most dogs show dramatic improvement.",
+      '30+': "That kind of commitment is rare and powerful. You'll likely see results faster than most.",
+    },
   },
 
   // Step: Completion
@@ -505,9 +537,10 @@ export const ONBOARDING_FLOW = [
 // --- Generation Steps ---
 export const GENERATION_STEPS = [
   { id: 1, label: "Analyzing {dogName}'s profile" },
-  { id: 2, label: "Reviewing your answers" },
-  { id: 3, label: "Matching with expert techniques" },
-  { id: 4, label: "Building your custom plan" },
+  { id: 2, label: "Calculating leadership & boundaries scores" },
+  { id: 3, label: "Evaluating essentials & sensitivities" },
+  { id: 4, label: "Matching with expert techniques" },
+  { id: 5, label: "Building your custom plan" },
 ];
 
 // --- Plan Structure ---
@@ -574,3 +607,159 @@ export const getPlanDays = (problemId, dogName) => ({
     { day: 7, title: 'Mastery', description: 'Long-term success plan', lessons: 2, duration: '8 min' },
   ],
 });
+
+// --- Milestone Roadmap (4-week plan for DiagnosisScreen) ---
+export const MILESTONE_ROADMAP = [
+  { week: 1, title: 'Foundation', description: 'Build the core habits and communication patterns' },
+  { week: 2, title: 'Reinforcement', description: 'Strengthen consistency and address setbacks' },
+  { week: 3, title: 'Real-World', description: 'Apply training in distracting environments' },
+  { week: 4, title: 'Independence', description: 'Reliable behavior without constant guidance' },
+];
+
+// --- Diagnosis Functions ---
+export const computeDiagnosisScores = (chatResponses) => {
+  // Leadership score from leadership_1 answers
+  const l1 = chatResponses.leadership_1 || {};
+  const leadershipGood = [
+    !l1.table_scraps,
+    l1.door_wait === true,
+    !l1.raise_voice,
+    !l1.leash_pull,
+    l1.approach_signal === true,
+    l1.playtime_signal === true,
+  ].filter(Boolean).length;
+  const leadership = Math.round((leadershipGood / 6) * 100);
+
+  // Boundaries score from leadership_2 answers
+  const l2 = chatResponses.leadership_2 || {};
+  const boundaryGood = [
+    l2.earn_treats === true,
+    !l2.recall_repeat,
+    !l2.furniture_invite,
+    !l2.move_around,
+    l2.designated_spot === true,
+  ].filter(Boolean).length;
+  const boundaries = Math.round((boundaryGood / 5) * 100);
+
+  // Essentials score from five_things answers
+  const ft = chatResponses.five_things || {};
+  const essentialsCount = Object.values(ft).filter(Boolean).length;
+  const essentials = Math.round((essentialsCount / 5) * 100);
+
+  // Reactivity score from sensitivities (inverted — higher = more reactive = worse)
+  const sens = chatResponses.sensitivities || {};
+  const sensValues = Object.values(sens);
+  const reactivity = sensValues.length > 0
+    ? Math.round(sensValues.reduce((a, b) => a + b, 0) / sensValues.length)
+    : 20;
+
+  return { leadership, boundaries, essentials, reactivity };
+};
+
+export const getDiagnosisNarrative = (dogName, scores, goal) => {
+  const weakAreas = [];
+  if (scores.leadership < 50) weakAreas.push('leadership structure');
+  if (scores.boundaries < 50) weakAreas.push('boundary consistency');
+  if (scores.essentials < 60) weakAreas.push('daily essentials');
+
+  const goalLabels = {
+    potty: 'potty training',
+    leash: 'leash behavior',
+    obedience: 'obedience',
+    behavior: 'behavior issues',
+  };
+  const goalLabel = goalLabels[goal] || 'training goals';
+
+  if (weakAreas.length === 0) {
+    return `${dogName} has a solid foundation across leadership, boundaries, and daily care. Your ${goalLabel} goal is very achievable — we just need to channel this foundation into targeted exercises.`;
+  }
+
+  return `${dogName}'s assessment shows that ${weakAreas.join(' and ')} ${weakAreas.length === 1 ? 'needs' : 'need'} attention. This is directly connected to your ${goalLabel} challenges. The good news: these are exactly the areas your plan targets first.`;
+};
+
+export const getEscalationWarning = (dogName, age, severity, goal) => {
+  const isYoung = ['puppy', 'young'].includes(age);
+  const isSevere = severity > 60;
+
+  const goalLabels = {
+    potty: 'house training issues',
+    leash: 'leash reactivity',
+    obedience: 'obedience gaps',
+    behavior: 'behavioral patterns',
+  };
+  const issue = goalLabels[goal] || 'these behaviors';
+
+  if (isYoung && isSevere) {
+    return `At ${dogName}'s age, ${issue} can become permanent habits within weeks if not addressed. The window for easiest correction is right now.`;
+  }
+  if (isYoung) {
+    return `Young dogs like ${dogName} are in their prime learning window. Addressing ${issue} now prevents them from becoming ingrained adult behaviors.`;
+  }
+  if (isSevere) {
+    return `With a severity level this high, ${issue} typically escalate over time without structured intervention. Each week of delay makes correction harder.`;
+  }
+  return `Left unaddressed, ${issue} tend to gradually worsen. Starting now means faster results and less frustration for both you and ${dogName}.`;
+};
+
+export const getMirrorSummary = (dogName, chatResponses) => {
+  const bullets = [];
+
+  // Living situation
+  const livingLabels = {
+    'house_yard': 'Lives in a house with a yard',
+    'apt_balcony': 'Lives in an apartment with a balcony',
+    'apt_no_outdoor': 'Lives in an apartment without outdoor space',
+  };
+  if (chatResponses.living) {
+    bullets.push(livingLabels[chatResponses.living] || 'Living situation noted');
+  }
+
+  // Goal
+  const goalLabels = {
+    'potty': 'Main goal: potty training',
+    'leash': 'Main goal: leash manners',
+    'obedience': 'Main goal: basic obedience',
+    'behavior': 'Main goal: behavior issues',
+  };
+  if (chatResponses.goal) {
+    bullets.push(goalLabels[chatResponses.goal] || 'Training goal set');
+  }
+
+  // Essentials gaps
+  const ft = chatResponses.five_things || {};
+  const yesCount = Object.values(ft).filter(Boolean).length;
+  if (yesCount < 5) {
+    const missing = [];
+    if (!ft.sensory) missing.push('sensory stimulation');
+    if (!ft.walks) missing.push('regular walks');
+    if (!ft.training) missing.push('daily training');
+    if (!ft.diet) missing.push('diet review');
+    if (!ft.bonding) missing.push('bonding time');
+    if (missing.length > 0) {
+      bullets.push(`Missing essentials: ${missing.slice(0, 3).join(', ')}`);
+    }
+  } else {
+    bullets.push('All 5 daily essentials covered');
+  }
+
+  // Sensitivities
+  const sens = chatResponses.sensitivities || {};
+  const reactive = Object.entries(sens).filter(([, v]) => v > 50);
+  if (reactive.length > 0) {
+    const sensLabels = { food: 'food guarding', touch: 'touch sensitivity', movement: 'movement reactivity', noise: 'noise sensitivity', possessions: 'resource guarding' };
+    const names = reactive.map(([k]) => sensLabels[k] || k);
+    bullets.push(`Sensitivities: ${names.join(', ')}`);
+  } else {
+    bullets.push('Low reactivity across all areas');
+  }
+
+  // Severity
+  if (chatResponses.severity !== undefined) {
+    const sev = chatResponses.severity;
+    if (sev <= 30) bullets.push('Issue severity: mild');
+    else if (sev <= 60) bullets.push('Issue severity: moderate');
+    else bullets.push('Issue severity: high');
+  }
+
+  return bullets;
+};

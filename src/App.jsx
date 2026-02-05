@@ -5,6 +5,7 @@ import { PetProfileScreen } from './screens/PetProfileScreen';
 import { ChatScreen } from './screens/ChatScreen';
 import { GenerationScreen } from './screens/GenerationScreen';
 import { PlanScreen } from './screens/PlanScreen';
+import { DiagnosisScreen } from './screens/DiagnosisScreen';
 import './index.css';
 
 const App = () => {
@@ -14,6 +15,7 @@ const App = () => {
     breed: '',
     age: '',
     selectedProblem: null,
+    chatResponses: {},
   });
 
   const updateData = (newData) => {
@@ -21,7 +23,7 @@ const App = () => {
   };
 
   const nextScreen = () => {
-    const screens = ['welcome', 'profile', 'chat', 'generation', 'plan'];
+    const screens = ['welcome', 'profile', 'chat', 'generation', 'diagnosis', 'plan'];
     const currentIndex = screens.indexOf(currentScreen);
     if (currentIndex < screens.length - 1) {
       setCurrentScreen(screens[currentIndex + 1]);
@@ -29,7 +31,7 @@ const App = () => {
   };
 
   const prevScreen = () => {
-    const screens = ['welcome', 'profile', 'chat', 'generation', 'plan'];
+    const screens = ['welcome', 'profile', 'chat', 'generation', 'diagnosis', 'plan'];
     const currentIndex = screens.indexOf(currentScreen);
     if (currentIndex > 0) {
       setCurrentScreen(screens[currentIndex - 1]);
@@ -62,6 +64,8 @@ const App = () => {
         );
       case 'generation':
         return <GenerationScreen key="generation" onNext={nextScreen} data={data} />;
+      case 'diagnosis':
+        return <DiagnosisScreen key="diagnosis" onNext={nextScreen} data={data} />;
       case 'plan':
         return <PlanScreen key="plan" data={data} />;
       default:

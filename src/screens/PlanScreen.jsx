@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { PawPrint, Calendar, Clock, BookOpen, ChevronRight, Star, Sparkles, Home, Dumbbell, BarChart3, MessageCircle, User, X } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { PawPrint, Calendar, Clock, BookOpen, ChevronRight, Star, Sparkles, Home, Dumbbell, BarChart3, MessageCircle, User, ArrowRight } from 'lucide-react';
 import { getPlanDays } from '../data/config';
 import confetti from 'canvas-confetti';
 
 export const PlanScreen = ({ data }) => {
-  const [showAccountPrompt, setShowAccountPrompt] = useState(false);
   const dogName = data.dogName || 'Your dog';
   const problemId = data.selectedProblem || 'default';
   const planDays = getPlanDays(problemId, dogName)[problemId] || getPlanDays(problemId, dogName).default;
@@ -26,38 +25,34 @@ export const PlanScreen = ({ data }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Show account prompt after 8 seconds (give user time to explore)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowAccountPrompt(true);
-    }, 8000);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <div className="h-full bg-bg-cream flex flex-col relative">
       {/* Trial Banner */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="mx-4 mt-4 bg-[#E8F5E9] rounded-xl p-4 shadow-sm border border-[#2E5A4C]/10"
+        className="mx-4 mt-4 bg-[#E8F5E9] rounded-xl p-3 shadow-sm border border-[#2E5A4C]/10"
       >
-        <div className="flex items-start gap-3">
-          <span className="text-2xl">🎉</span>
-          <div>
-            <h3 className="font-bold text-[#2E5A4C] text-sm">Your free trial is active!</h3>
-            <p className="text-xs text-[#2E5A4C]/70 mt-1">Full access for 3 days</p>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-lg">🎉</span>
+          <h3 className="font-bold text-[#2E5A4C] text-sm">Enjoy 3 day free trial</h3>
         </div>
       </motion.div>
 
-      {/* Header Card */}
+      {/* Header Card - Clickable to learn more */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="mx-4 mt-3 p-6 bg-gradient-to-br from-[#E07B39] to-[#C86A2E] rounded-2xl text-white relative overflow-hidden"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        className="mx-4 mt-3 p-6 bg-gradient-to-br from-[#E07B39] to-[#C86A2E] rounded-2xl text-white relative overflow-hidden cursor-pointer group"
+        onClick={() => console.log('Navigate to dog insights')}
       >
+        {/* Click hint */}
+        <div className="absolute top-3 right-3 opacity-60 group-hover:opacity-100 transition-opacity">
+          <ArrowRight className="w-5 h-5" />
+        </div>
         {/* Decorative elements */}
         <div className="absolute top-2 right-2 opacity-20">
           <Sparkles className="w-16 h-16" />
@@ -73,7 +68,7 @@ export const PlanScreen = ({ data }) => {
             </div>
             <div>
               <h1 className="text-xl font-bold">{dogName}'s Plan</h1>
-              <p className="text-white/80 text-sm">Journey to Greatness!</p>
+              <p className="text-white/80 text-sm">Click to learn more about {dogName}</p>
             </div>
           </div>
 
@@ -101,7 +96,8 @@ export const PlanScreen = ({ data }) => {
       {/* Plan Title */}
       <div className="px-6 py-4">
         <h2 className="text-lg font-bold text-gray-800">Your 7-Day Plan</h2>
-        <p className="text-sm text-gray-500">Complete one day at a time for best results</p>
+        <p className="text-sm text-gray-500">Complete one day at a time</p>
+        <p className="text-xs text-gray-400 mt-1">Consistency matters more than speed.</p>
       </div>
 
       {/* Day Cards */}
@@ -186,75 +182,6 @@ export const PlanScreen = ({ data }) => {
           </button>
         </div>
       </div>
-
-      {/* Account Prompt Modal */}
-      <AnimatePresence>
-        {showAccountPrompt && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40"
-              onClick={() => setShowAccountPrompt(false)}
-            />
-
-            {/* Modal */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="absolute inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl p-6 z-50 shadow-xl"
-            >
-              {/* Close button */}
-              <button
-                onClick={() => setShowAccountPrompt(false)}
-                className="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              {/* Content */}
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 rounded-full bg-bg-orange mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-4xl">🐕</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Save your progress!</h3>
-                <p className="text-gray-500 text-sm">Create an account to keep {dogName}'s training plan and track progress.</p>
-              </div>
-
-              {/* Sign-in buttons */}
-              <div className="space-y-3">
-                <button className="w-full py-3 px-4 bg-white border border-gray-200 rounded-xl font-medium text-gray-700 flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Continue with Google
-                </button>
-
-                <button className="w-full py-3 px-4 bg-black text-white rounded-xl font-medium flex items-center justify-center gap-3 hover:bg-gray-800 transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                  </svg>
-                  Continue with Apple
-                </button>
-              </div>
-
-              {/* Maybe later */}
-              <button
-                onClick={() => setShowAccountPrompt(false)}
-                className="w-full mt-4 py-2 text-gray-500 text-sm font-medium hover:text-gray-700 transition-colors"
-              >
-                Maybe later
-              </button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

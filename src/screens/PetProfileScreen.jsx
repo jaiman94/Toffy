@@ -35,10 +35,6 @@ export const PetProfileScreen = ({ onNext, onBack, data, updateData }) => {
     }
   };
 
-  // Progress dots
-  const totalSteps = 3;
-  const currentStep = 1;
-
   return (
     <div className="h-full bg-bg-cream flex flex-col">
       {/* Header */}
@@ -51,16 +47,13 @@ export const PetProfileScreen = ({ onNext, onBack, data, updateData }) => {
           <ChevronLeft className="w-5 h-5 text-gray-600" />
         </motion.button>
 
-        {/* Progress dots */}
-        <div className="flex gap-2">
-          {[...Array(totalSteps)].map((_, i) => (
-            <div
-              key={i}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                i < currentStep ? 'bg-[#E07B39]' : 'bg-gray-300'
-              }`}
-            />
-          ))}
+        {/* Labeled progress steps */}
+        <div className="flex items-center gap-1.5 text-[11px] font-medium">
+          <span className="text-[#E07B39]">Profile</span>
+          <span className="text-gray-300">›</span>
+          <span className="text-gray-400">Assessment</span>
+          <span className="text-gray-300">›</span>
+          <span className="text-gray-400">Your plan</span>
         </div>
 
         <div className="w-10" /> {/* Spacer */}
@@ -187,10 +180,10 @@ export const PetProfileScreen = ({ onNext, onBack, data, updateData }) => {
                   key={ageOption.value}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setAge(ageOption.value)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  className={`px-3 py-2 rounded-full text-xs font-medium transition-all ${
                     age === ageOption.value
-                      ? 'bg-[#E07B39] text-white shadow-md'
-                      : 'bg-white text-gray-700 border border-gray-200 hover:border-[#E07B39] hover:bg-orange-50'
+                      ? 'bg-[#E07B39] text-white shadow-sm'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-[#E07B39]/50 hover:bg-orange-50/50'
                   }`}
                 >
                   {ageOption.label}
@@ -219,7 +212,7 @@ export const PetProfileScreen = ({ onNext, onBack, data, updateData }) => {
               </div>
               <ArrowRight className="w-5 h-5 text-[#E07B39]" />
             </div>
-            <p className="text-xs text-gray-400 mt-2">Next: Chat with Toffy AI</p>
+            <p className="text-xs text-gray-400 mt-2">Next: 2-minute behavioral assessment</p>
           </motion.div>
         )}
 

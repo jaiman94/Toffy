@@ -8,7 +8,7 @@ import { SliderBubble } from '../components/ui/SliderBubble';
 import { MultiSelectChips } from '../components/ui/MultiSelectChips';
 import { SensitivityMatrix } from '../components/ui/SensitivityMatrix';
 
-export const ChatScreen = ({ onNext, onBack, data }) => {
+export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
   const [messages, setMessages] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
@@ -78,23 +78,44 @@ export const ChatScreen = ({ onNext, onBack, data }) => {
   };
 
   const handleStepComplete = (stepId, value, displayText) => {
-    // Save response
-    setResponses(prev => ({ ...prev, [stepId]: value }));
+    // Save response and sync to parent
+    const newResponses = { ...responses, [stepId]: value };
+    setResponses(newResponses);
+    const updatePayload = { chatResponses: newResponses };
+    if (stepId === 'goal') updatePayload.selectedProblem = value;
+    updateData(updatePayload);
 
     // Add user message
     if (displayText) {
       addUserResponse(processText(displayText));
     }
 
-    // Check for acknowledgement on current step
-    const hasAck = currentFlow?.acknowledgement;
+    // Resolve acknowledgement: map → dynamic → static
+    let ackText = null;
+    if (currentFlow?.acknowledgementMap && currentFlow.acknowledgementMap[value]) {
+      ackText = currentFlow.acknowledgementMap[value];
+    } else if (currentFlow?.dynamicAcknowledgement) {
+      ackText = currentFlow.dynamicAcknowledgement(value);
+    } else if (currentFlow?.acknowledgement) {
+      ackText = currentFlow.acknowledgement;
+    }
+
+    const hasAck = !!ackText;
     const ackDelay = hasAck ? 800 : 0;
 
     // Show acknowledgement if exists
     if (hasAck) {
       setTimeout(() => {
-        addAcknowledgement(processText(currentFlow.acknowledgement));
+        addAcknowledgement(processText(ackText));
       }, 400);
+    }
+
+    // Show credential pill if the step has one
+    if (currentFlow?.credential) {
+      const credDelay = hasAck ? 1000 : 400;
+      setTimeout(() => {
+        setMessages(prev => [...prev, { type: 'credential', text: currentFlow.credential }]);
+      }, credDelay);
     }
 
     // Move to next step
@@ -247,7 +268,12 @@ export const ChatScreen = ({ onNext, onBack, data }) => {
 
         <div>
           <h1 className="text-base font-semibold text-gray-800">Toffy AI</h1>
-          <p className="text-xs text-gray-500">Your training buddy</p>
+          <p className="text-xs text-gray-500">
+            {currentStep <= 2 ? 'Getting to know you' :
+             currentStep <= 7 ? 'Behavioral assessment' :
+             currentStep <= 9 ? 'Sensitivity check' :
+             'Almost done'}
+          </p>
         </div>
       </div>
 
@@ -260,6 +286,21 @@ export const ChatScreen = ({ onNext, onBack, data }) => {
           <div key={idx}>
             {msg.type === 'bot' ? (
               renderWidget(msg.step)
+            ) : msg.type === 'credential' ? (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-center"
+              >
+                <div className="flex items-center gap-2 bg-[#E07B39]/5 border border-[#E07B39]/10 px-3 py-1.5 rounded-full">
+                  <div className="w-4 h-4 rounded-full bg-[#E07B39]/20 flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-[#E07B39]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] text-[#E07B39]/80 font-medium">{msg.text}</span>
+                </div>
+              </motion.div>
             ) : msg.type === 'acknowledgement' ? (
               <motion.div
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
