@@ -32,6 +32,7 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
     if (stepId === 'goal') return '🎯';
     if (stepId?.includes('leadership')) return '🤴';
     if (stepId === 'five_things') return '🥗';
+    if (stepId?.includes('sensitivities')) return '🛡️';
     if (stepId === 'severity') return '🌡️';
     if (stepId === 'training_time') return '🕒';
     if (currentFlow.type === 'speedround') return '⚡';
@@ -122,6 +123,17 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
           { id: `essentials-${index}-2`, label: focusLine, icon: 'sparkles' },
         ];
       }
+      case 'sensitivities': {
+        const sensValues = typeof value === 'object' ? Object.values(value) : [];
+        const reactiveCount = sensValues.filter(v => v > 50).length;
+        const avgReactivity = sensValues.length > 0 ? Math.round(sensValues.reduce((a, b) => a + b, 0) / sensValues.length) : 0;
+        const reactLabel = reactiveCount === 0 ? 'Low reactivity across all areas.' : `${reactiveCount} reactive trigger${reactiveCount > 1 ? 's' : ''} flagged.`;
+        return [
+          { id: `sens-${index}-1`, label: `Scanning ${dogName}'s reactivity profile.`, icon: 'search' },
+          { id: `sens-${index}-2`, label: reactLabel, icon: 'brain' },
+          { id: `sens-${index}-3`, label: `Avg. reactivity: ${avgReactivity}% — calibrating plan intensity.`, icon: 'gauge' },
+        ];
+      }
       case 'severity': {
         const descriptor = getSeverityDescriptor(typeof value === 'number' ? value : 50);
         return [
@@ -200,6 +212,7 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
     const shouldThink =
       stepId === 'leadership_2' ||  // After completing the leadership section
       stepId === 'five_things' ||  // After completing the 5 things assessment
+      stepId === 'sensitivities' ||  // After completing sensitivity assessment
       stepId === 'severity';  // After completing severity assessment
     // Note: notification_reminder does not trigger thinking as it leads directly to completion
 
@@ -405,7 +418,7 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
           <p className="text-xs text-gray-500">
             {currentStep <= 2 ? 'Getting to know you' :
               currentStep <= 7 ? 'Behavioral assessment' :
-                currentStep <= 9 ? 'Sensitivity check' :
+                currentStep <= 11 ? 'Sensitivity check' :
                   'Almost done'}
           </p>
         </div>

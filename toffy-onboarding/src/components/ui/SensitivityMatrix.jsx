@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { PawPrint, Check, Volume2, Hand, Zap, UtensilsCrossed, Bone } from 'lucide-react';
+import { PawPrint, Check, Volume2, Hand, Zap, UtensilsCrossed, Bone, Shield, Move } from 'lucide-react';
 
 // Icon mapping for sensitivity items
 const iconMap = {
   food: UtensilsCrossed,
   touch: Hand,
-  movement: Zap,
+  movement: Move,
   noise: Volume2,
   possessions: Bone,
+  resource_guarding: Shield,
+  sound: Volume2,
 };
 
 export const SensitivityMatrix = ({
@@ -100,7 +102,7 @@ export const SensitivityMatrix = ({
                 className="bg-gray-50 rounded-xl p-3"
               >
                 {/* Header Row */}
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center">
                       <Icon className="w-3.5 h-3.5 text-gray-500" />
@@ -111,11 +113,18 @@ export const SensitivityMatrix = ({
                     key={label.text}
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${label.bg} ${label.color}`}
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${label.bg} ${label.color}`}
                   >
                     {label.text}
                   </motion.span>
                 </div>
+
+                {/* Sublabel / Question Copy */}
+                {item.sublabel && (
+                  <p className="text-[11px] text-gray-400 mb-2 pl-9 leading-relaxed">
+                    {item.sublabel.replace(/{name}/g, dogName)}
+                  </p>
+                )}
 
                 {/* Slider Track */}
                 <div className="relative h-6 flex items-center">

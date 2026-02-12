@@ -452,6 +452,39 @@ export const ONBOARDING_FLOW = [
     },
   },
 
+  // --- NEW: Sensitivity / Reactivity Assessment ---
+  {
+    id: 'sensitivities_intro',
+    type: 'intro',
+    message: "Now let's check how {name} reacts to specific triggers. This helps me understand their stress thresholds.",
+    buttonText: "Check reactivity",
+    credential: "Based on certified veterinary behaviorist screening protocols",
+  },
+  {
+    id: 'sensitivities',
+    type: 'matrix',
+    question: "How does {name} react to these?",
+    items: [
+      { id: 'resource_guarding', label: 'Resource Guarding', sublabel: 'Have you ever seen {name} show aggression when you approach something they value? (for example: food, toys, or family members)', defaultValue: 20 },
+      { id: 'sound', label: 'Sound Sensitivity', sublabel: 'Does {name} show any reaction to loud noises? (this could look like fear, aggression, or even tolerance)', defaultValue: 20 },
+      { id: 'movement', label: 'Movement Sensitivity', sublabel: 'Does {name} show any reaction to sudden movements? (this could look like fear, aggression, or even tolerance)', defaultValue: 20 },
+      { id: 'touch', label: 'Touch Sensitivity', sublabel: 'Does {name} show any reaction when being touched? (this could look like fear, aggression, or even tolerance)', defaultValue: 20 },
+      { id: 'food', label: 'Food Aggression', sublabel: 'Does {name} get aggressive when you are near their food bowl or try to take it away?', defaultValue: 20 },
+    ],
+    summaryTemplate: (values) => {
+      const reactiveItems = Object.entries(values).filter(([, v]) => v > 50);
+      if (reactiveItems.length === 0) return '{name} is generally calm across all triggers';
+      if (reactiveItems.length === 1) return '{name} shows some reactivity in 1 area';
+      return `{name} shows reactivity in ${reactiveItems.length} areas`;
+    },
+    dynamicAcknowledgement: (values) => {
+      const reactiveCount = Object.values(values).filter(v => v > 50).length;
+      if (reactiveCount === 0) return "Low reactivity is great news — it means the core issue is likely behavioral, not temperamental.";
+      if (reactiveCount <= 2) return "A couple of reactive areas is very normal. Your plan will include desensitization exercises for these.";
+      return "Multiple reactive triggers tell me we need a careful, structured approach. Your plan will prioritize safety and gradual exposure.";
+    },
+  },
+
   // Step: Severity slider (combines severity + frequency)
   {
     id: 'severity',

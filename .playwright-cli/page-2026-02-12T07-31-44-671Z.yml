@@ -1,0 +1,32 @@
+- generic [ref=e7]:
+  - generic [ref=e8]:
+    - generic [ref=e9]: t
+    - generic [ref=e10]: 🐾
+    - generic [ref=e11]: ffy
+  - generic [ref=e12]:
+    - heading "Expert dog training, powered by AI" [level=1] [ref=e13]:
+      - text: Expert dog training,
+      - text: powered by AI
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e17]: 🐕
+        - generic [ref=e19]: 🐩
+        - generic [ref=e21]: 🦮
+      - generic [ref=e22]: 50,000+ dogs trained
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e26]: "1"
+        - generic [ref=e27]: Quick assessment
+      - generic [ref=e29]:
+        - generic [ref=e31]: "2"
+        - generic [ref=e32]: Get diagnosis
+      - generic [ref=e34]:
+        - generic [ref=e36]: "3"
+        - generic [ref=e37]: Follow plan
+    - generic [ref=e38]:
+      - generic [ref=e40]: 🐕
+      - img [ref=e42]
+  - generic [ref=e47]:
+    - button "Get Your Free Training Plan" [ref=e48]
+    - paragraph [ref=e49]: 3-day free trial. No credit card required.
+    - button "Already have an account? Log In" [ref=e50]
