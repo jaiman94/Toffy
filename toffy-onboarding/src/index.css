@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/* Tailwind v4 custom theme colors */
+@theme {
+  --color-primary-orange: #E07B39;
+  --color-primary-orange-hover: #C86A2E;
+  --color-bg-cream: #FDF6F0;
+  --color-bg-orange: #F5DCC7;
+  --color-success-green: #2E5A4C;
+  --color-success-green-light: #E8F5E9;
+  /* Updated colors from UI/UX spec */
+  --color-primary-orange: #E07B39;
+  --color-primary-orange-hover: #C86A2E;
+  --color-background-cream: #FDF6F0;
+  --color-success-green: #008A4B;
+  --color-success-green-light: #E8F5E9;
+  --color-warning-amber: #D48C24;
+  --color-critical-red: #D92626;
+  --color-calm-blue: #005084;
+  --color-ink: #1A2026;
+}
+
+/* Custom CSS for safe areas and mobile */
+.pt-safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.pb-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E07B39;
+  border-radius: 4px;
+}
+
+/* Input focus ring */
+input:focus,
+select:focus {
+  outline: none;
+}
+
+/* Disable text selection on buttons */
+button {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Animation classes */
+@keyframes typing {
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: typing 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Body reset */
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}
