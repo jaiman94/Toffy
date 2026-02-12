@@ -1,0 +1,2 @@
+[ 4772654ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/src/screens/GenerationScreen.jsx?t=1770206616636:0
+[ 4772657ms] [ERROR] [vite] Failed to reload /src/screens/GenerationScreen.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:808
