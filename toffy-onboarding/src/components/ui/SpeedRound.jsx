@@ -97,20 +97,6 @@ export const SpeedRound = ({
 
         {!isSubmitted && (
           <div className="mt-4 mb-2">
-            <div className="flex justify-between text-xs mb-1">
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={Object.values(answers).filter(a => a !== null).length}
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  className={allAnswered ? 'text-green-600 font-medium' : 'text-gray-400'}
-                >
-                  {allAnswered ? 'All done! ✓' : `Question ${Object.values(answers).filter(a => a !== null).length + 1} of ${questions.length}`}
-                </motion.span>
-              </AnimatePresence>
-              <span className="text-gray-400">{Object.values(answers).filter(a => a !== null).length}/{questions.length}</span>
-            </div>
             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-gradient-to-r from-[#E07B39] to-[#C86A2E] rounded-full"
@@ -149,7 +135,7 @@ export const SpeedRound = ({
             animate={{ opacity: 1 }}
             className="mt-3 text-center text-xs text-gray-400"
           >
-            {yesCount} of {questions.length} answered "Yes"
+            All questions completed!
           </motion.div>
         )}
       </div>
