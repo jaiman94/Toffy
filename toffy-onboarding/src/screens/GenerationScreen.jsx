@@ -1,11 +1,79 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useAnimationFrame } from 'framer-motion';
 import { PawPrint, Check, Loader2 } from 'lucide-react';
-import { GENERATION_STEPS } from '../data/config';
+import { GENERATION_STEPS, computeDiagnosisScores, getScoreEvidence } from '../data/config';
+
+const CountUp = ({ value, suffix = '' }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useAnimationFrame((timeInfo) => {
+    const progress = Math.min(timeInfo.delta * 2, 1);
+    setDisplayValue((prev) => {
+      const next = prev + (value - prev) * progress;
+      return Math.round(next);
+    });
+  });
+
+  return (
+    <span>
+      {displayValue}
+      {suffix}
+    </span>
+  );
+};
+
+const ComputedBadge = ({ type, data }) => {
+  const scores = computeDiagnosisScores(data?.chatResponses || {});
+  
+  const badgeConfig = {
+    leadership: {
+      label: 'Leadership',
+      getValue: () => scores.leadership,
+      suffix: '%',
+      healthyRange: '70-100%',
+    },
+    essentials: {
+      label: 'Essentials',
+      getValue: () => Math.round(scores.essentials / 20),
+      suffix: '/5',
+      healthyRange: '4-5/5',
+    },
+    reactivity: {
+      label: 'Reactivity',
+      getValue: () => scores.reactivity,
+      suffix: '%',
+      healthyRange: '0-30%',
+    },
+  };
+
+  const config = badgeConfig[type];
+  if (!config) return null;
+
+  const value = config.getValue();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="ml-auto px-2 py-1 bg-white rounded-full border border-gray-200 shadow-sm"
+    >
+      <span className="text-[10px] font-medium text-gray-600">
+        {config.label}:{' '}
+        <span className="text-[#E07B39] font-semibold">
+          <CountUp value={value} suffix={config.suffix} />
+        </span>
+      </span>
+      <span className="block text-[9px] text-gray-400">
+        Healthy: {config.healthyRange}
+      </span>
+    </motion.div>
+  );
+};
 
 export const GenerationScreen = ({ onNext, data }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const dogName = data.dogName || 'your dog';
+  const evidence = getScoreEvidence(data?.chatResponses || {});
 
   const processText = (text) => text.replace(/{dogName}/g, dogName);
 
@@ -76,7 +144,7 @@ export const GenerationScreen = ({ onNext, data }) => {
         transition={{ delay: 0.3 }}
         className="text-center text-gray-600 text-base mb-8 max-w-xs"
       >
-        {`Let me analyze ${dogName}'s profile and build a plan...`}
+        {`Analyzing your answers to build ${dogName}'s Week 1 plan...`}
       </motion.p>
 
       {/* Progress Steps */}
@@ -127,7 +195,7 @@ export const GenerationScreen = ({ onNext, data }) => {
                 )}
               </div>
               <span
-                className={`text-sm ${
+                className={`text-sm flex-1 ${
                   isComplete
                     ? 'text-green-700'
                     : isCurrent
@@ -136,7 +204,15 @@ export const GenerationScreen = ({ onNext, data }) => {
                 }`}
               >
                 {processText(step.label)}
+                {isComplete && step.badge && evidence[step.badge]?.length > 0 && (
+                  <span className="block text-[11px] text-gray-500 mt-0.5">
+                    Evidence: {evidence[step.badge].slice(0, 2).join(' & ')}
+                  </span>
+                )}
               </span>
+              {isComplete && step.badge && (
+                <ComputedBadge type={step.badge} data={data} />
+              )}
             </motion.div>
           );
         })}

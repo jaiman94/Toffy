@@ -17,6 +17,8 @@ export const SensitivityMatrix = ({
   question,
   items = [],
   onComplete,
+  onInteractionStart,
+  onInteractionEnd,
   dogName = ''
 }) => {
   const initialValues = {};
@@ -30,6 +32,7 @@ export const SensitivityMatrix = ({
   const displayQuestion = question?.replace(/{name}/g, dogName) || `How does ${dogName} react to these?`;
 
   const handleSliderChange = (id, newValue) => {
+    // Update local state immediately for smooth UI
     setValues(prev => ({ ...prev, [id]: newValue }));
   };
 
@@ -145,6 +148,10 @@ export const SensitivityMatrix = ({
                     max={100}
                     step={1}
                     value={value}
+                    onMouseDown={() => onInteractionStart && onInteractionStart()}
+                    onMouseUp={() => onInteractionEnd && onInteractionEnd()}
+                    onTouchStart={() => onInteractionStart && onInteractionStart()}
+                    onTouchEnd={() => onInteractionEnd && onInteractionEnd()}
                     onChange={(e) => handleSliderChange(item.id, Number(e.target.value))}
                     disabled={isSubmitted}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"

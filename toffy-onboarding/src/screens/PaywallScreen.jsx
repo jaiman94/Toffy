@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Lock, Star, Check, Sparkles, Crown, Heart, ChevronLeft } from 'lucide-react';
+import { SUBSCRIPTION_CONFIG } from '../data/config';
 
-export const PaywallScreen = ({ onSubscribe, onClose }) => {
+export const PaywallScreen = ({ onSubscribe, onClose, dogName = 'your dog' }) => {
   return (
     <div className="h-full bg-bg-cream flex flex-col items-center justify-center p-6 relative">
       {/* Back button */}
@@ -53,7 +54,7 @@ export const PaywallScreen = ({ onSubscribe, onClose }) => {
 
         {/* Title */}
         <h1 className="text-2xl font-bold text-center text-ink mb-2">
-          Unlock Full Access
+          Start Free Trial for {dogName}
         </h1>
 
         {/* Subtitle */}
@@ -99,7 +100,7 @@ export const PaywallScreen = ({ onSubscribe, onClose }) => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="font-bold text-lg">Premium Plan</h3>
-              <p className="text-white/80 text-sm">Unlimited access forever</p>
+              <p className="text-white/80 text-sm">{SUBSCRIPTION_CONFIG.planDurationLabel}</p>
             </div>
             <div className="bg-white/20 rounded-full p-1.5">
               <Crown className="w-5 h-5" />
@@ -123,14 +124,14 @@ export const PaywallScreen = ({ onSubscribe, onClose }) => {
         {/* Free trial note */}
         <div className="text-center">
           <p className="text-sm text-ink/60">
-            7-day free trial • Cancel anytime • No commitment
-          </p>
+              {SUBSCRIPTION_CONFIG.trialLength}-day free trial • Cancel anytime • No commitment
+            </p>
         </div>
       </motion.div>
 
       {/* Bottom note */}
       <p className="text-ink/60 text-sm mt-6 text-center max-w-xs">
-        Already have a subscription?{' '}
+        Have an account?{' '}
         <button className="text-primary-orange font-medium hover:underline">
           Sign in
         </button>

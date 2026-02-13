@@ -7,6 +7,13 @@ export const PetProfileScreen = ({ onNext, onBack, data, updateData }) => {
   const [name, setName] = useState(data.dogName || '');
   const [breed, setBreed] = useState(data.breed || '');
   const [age, setAge] = useState(data.age || '');
+  const [avatarEmoji, setAvatarEmoji] = useState(data.avatarEmoji || '');
+  
+  // Function to sync avatar selection with breed
+  const handleAvatarSelect = (emoji, breedName) => {
+    setAvatarEmoji(emoji);
+    setBreed(breedName);
+  };
   const [showBreedDropdown, setShowBreedDropdown] = useState(false);
   const [breedSearch, setBreedSearch] = useState('');
   const dropdownRef = useRef(null);
@@ -30,10 +37,21 @@ export const PetProfileScreen = ({ onNext, onBack, data, updateData }) => {
 
   const handleContinue = () => {
     if (isValid) {
-      updateData({ dogName: name, breed, age });
+      updateData({ dogName: name, breed, age, avatarEmoji });
       onNext();
     }
   };
+
+  const breedAvatars = [
+    { breed: 'Golden Retriever', emoji: '🦮' },
+    { breed: 'Labrador Retriever', emoji: '🐕' },
+    { breed: 'German Shepherd', emoji: '🐕‍🦺' },
+    { breed: 'French Bulldog', emoji: '🐶' },
+    { breed: 'Bulldog', emoji: '🐶' },
+    { breed: 'Poodle', emoji: '🐩' },
+    { breed: 'Beagle', emoji: '🐕' },
+    { breed: 'Mixed Breed', emoji: '🐕' },
+  ];
 
   return (
     <div className="h-full bg-bg-cream flex flex-col">
@@ -66,22 +84,59 @@ export const PetProfileScreen = ({ onNext, onBack, data, updateData }) => {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          {/* Photo Upload (Optional) */}
+          {/* Claim Profile */}
           <div className="flex flex-col items-center">
-            <p className="text-sm text-gray-500 mb-3">Got a photo of your pup? (Optional)</p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-20 h-20 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-[#E07B39] hover:bg-orange-50 transition-colors"
-            >
-              <Camera className="w-6 h-6 text-gray-400" />
-            </motion.button>
+            <p className="text-sm text-gray-700 font-medium mb-2">Claim your pup's avatar</p>
+            <div className="flex items-center gap-2">
+              {breedAvatars.map(({ breed, emoji }) => (
+                <motion.button
+                  key={breed}
+                  whileTap={{ scale: 0.92 }}
+                  onClick={() => handleAvatarSelect(emoji, breed)}
+                  className={`w-12 h-12 rounded-full border flex items-center justify-center text-xl transition-all ${
+                    avatarEmoji === emoji
+                      ? 'border-[#E07B39] bg-orange-50 shadow-sm'
+                      : 'border-gray-200 bg-white hover:border-[#E07B39]/60'
+                  }`}
+                  aria-label={`Choose ${breed} avatar`}
+                >
+                  {emoji}
+                </motion.button>
+              ))}
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  // Allow user to upload custom photo, but clear the emoji selection
+                  setAvatarEmoji('');
+                }}
+                className={`w-12 h-12 rounded-full border flex items-center justify-center ${
+                  !avatarEmoji
+                    ? 'border-[#E07B39] bg-orange-50 shadow-sm'
+                    : 'bg-gray-50 border-2 border-dashed border-gray-300 hover:border-[#E07B39] hover:bg-orange-50'
+                } transition-colors`}
+                aria-label="Add photo"
+              >
+                <Camera className="w-5 h-5 text-gray-400" />
+              </motion.button>
+            </div>
+            {(avatarEmoji || breed) && (
+              <button
+                onClick={() => {
+                  setAvatarEmoji('');
+                  setBreed('');
+                }}
+                className="mt-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Clear selection
+              </button>
+            )}
           </div>
 
           {/* Name Input */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              What is your pup's name? *
+              Your dog's name (used in the plan)
             </label>
             <input
               type="text"
@@ -95,7 +150,7 @@ export const PetProfileScreen = ({ onNext, onBack, data, updateData }) => {
           {/* Breed Dropdown */}
           <div className="space-y-2" ref={dropdownRef}>
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              What breed is {name || 'your dog'}? *
+              What breed is {name || 'your dog'}? * {breed && <span className="text-[#E07B39] font-normal normal-case">(selected via avatar)</span>}
             </label>
             <div className="relative">
               <button
@@ -149,6 +204,9 @@ export const PetProfileScreen = ({ onNext, onBack, data, updateData }) => {
                           key={b}
                           onClick={() => {
                             setBreed(b);
+                            // Clear avatar selection when breed is chosen from dropdown
+                            // since it might not match any of the predefined avatars
+                            setAvatarEmoji('');
                             setShowBreedDropdown(false);
                             setBreedSearch('');
                           }}
@@ -204,15 +262,29 @@ export const PetProfileScreen = ({ onNext, onBack, data, updateData }) => {
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                <span className="text-xl">🐕</span>
+                <span className="text-xl">{avatarEmoji || '🐕'}</span>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-800">{name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-800">{name}</p>
+                  <AnimatePresence>
+                    {avatarEmoji && (
+                      <motion.span
+                        initial={{ opacity: 0, scale: 0.85 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-orange-100 text-[#C86A2E]"
+                      >
+                        Claimed
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
                 <p className="text-xs text-gray-500">{breed} • {AGES.find(a => a.value === age)?.label}</p>
               </div>
               <ArrowRight className="w-5 h-5 text-[#E07B39]" />
             </div>
-            <p className="text-xs text-gray-400 mt-2">Next: 2-minute behavioral assessment</p>
+            <p className="text-xs text-gray-400 mt-2">Next: 29 quick taps • usually under 3 minutes</p>
           </motion.div>
         )}
 

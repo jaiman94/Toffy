@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Clock, Sparkles } from 'lucide-react';
+import { SUBSCRIPTION_CONFIG } from '../data/config';
 
 export const WelcomeScreen = ({ onNext }) => {
   return (
@@ -47,28 +48,62 @@ export const WelcomeScreen = ({ onNext }) => {
           <span className="text-gray-600 font-medium">50,000+ dogs trained</span>
         </div>
 
-        {/* How it works - Clean minimalist steps */}
-        <div className="flex items-center gap-1 mb-6">
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-full border border-gray-100 shadow-sm">
-            <div className="w-5 h-5 rounded-full bg-[#E07B39]/10 flex items-center justify-center">
+        {/* How it works - Concrete action-based steps */}
+        <div className="flex items-center w-full gap-1 mb-8">
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+            className="flex-1 flex items-center gap-1.5 px-2 py-2 bg-white rounded-full border border-gray-100 shadow-sm h-11"
+          >
+            <div className="w-5 h-5 rounded-full bg-[#E07B39]/10 flex items-center justify-center shrink-0">
               <span className="text-[#E07B39] text-[10px] font-bold">1</span>
             </div>
-            <span className="text-[11px] text-gray-600 font-medium">Quick assessment</span>
-          </div>
-          <div className="w-3 h-px bg-gray-200"></div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-full border border-gray-100 shadow-sm">
-            <div className="w-5 h-5 rounded-full bg-[#E07B39]/10 flex items-center justify-center">
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-[10px] text-gray-800 font-bold leading-tight truncate">20 Questions</span>
+              <span className="text-[9px] text-gray-400 leading-tight">3 min</span>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: 0.5, duration: 0.3 }}
+            className="w-2 h-px bg-gray-200 shrink-0"
+          />
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+            className="flex-1 flex items-center gap-1.5 px-2 py-2 bg-white rounded-full border border-gray-100 shadow-sm h-11"
+          >
+            <div className="w-5 h-5 rounded-full bg-[#E07B39]/10 flex items-center justify-center shrink-0">
               <span className="text-[#E07B39] text-[10px] font-bold">2</span>
             </div>
-            <span className="text-[11px] text-gray-600 font-medium">Get diagnosis</span>
-          </div>
-          <div className="w-3 h-px bg-gray-200"></div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-full border border-gray-100 shadow-sm">
-            <div className="w-5 h-5 rounded-full bg-[#E07B39]/10 flex items-center justify-center">
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-[10px] text-gray-800 font-bold leading-tight truncate">AI Diagnosis</span>
+              <span className="text-[9px] text-gray-400 leading-tight">Instant</span>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: 0.6, duration: 0.3 }}
+            className="w-2 h-px bg-gray-200 shrink-0"
+          />
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
+            className="flex-1 flex items-center gap-1.5 px-2 py-2 bg-white rounded-full border border-gray-100 shadow-sm h-11"
+          >
+            <div className="w-5 h-5 rounded-full bg-[#E07B39]/10 flex items-center justify-center shrink-0">
               <span className="text-[#E07B39] text-[10px] font-bold">3</span>
             </div>
-            <span className="text-[11px] text-gray-600 font-medium">Follow plan</span>
-          </div>
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-[10px] text-gray-800 font-bold leading-tight truncate">7-Day Plan</span>
+              <span className="text-[9px] text-gray-400 leading-tight">Custom</span>
+            </div>
+          </motion.div>
         </div>
 
         {/* Mascot with Sparkle */}
@@ -105,17 +140,27 @@ export const WelcomeScreen = ({ onNext }) => {
           onClick={onNext}
           className="w-full py-4 bg-[#E07B39] text-white rounded-full font-semibold text-lg hover:bg-[#C86A2E] transition-colors shadow-lg"
         >
-          Get Your Free Training Plan
+          Start Free Assessment
         </motion.button>
 
-        <p className="text-center text-xs text-gray-400 -mt-2">3-day free trial. No credit card required.</p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="flex items-center justify-center gap-1 -mt-1"
+        >
+          <Clock className="w-3 h-3 text-gray-400" />
+          <span className="text-[11px] text-gray-400">3 min</span>
+        </motion.div>
+
+        <p className="text-center text-xs text-gray-400">Free {SUBSCRIPTION_CONFIG.trialLength}-day trial after your assessment.</p>
 
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className="w-full text-[#E07B39] font-medium text-xs hover:text-[#C86A2E] transition-colors"
         >
-          Already have an account? Log In
+          Have an account? Sign in
         </motion.button>
       </motion.div>
     </div>

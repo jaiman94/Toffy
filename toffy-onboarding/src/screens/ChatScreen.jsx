@@ -9,6 +9,65 @@ import { MultiSelectChips } from '../components/ui/MultiSelectChips';
 import { SensitivityMatrix } from '../components/ui/SensitivityMatrix';
 import { ThinkingProcess } from '../components/ui/ThinkingProcess';
 
+const NotificationPrompt = ({ step, onComplete }) => {
+  const [time, setTime] = useState(step.defaultTime || '19:00');
+
+  const handleAccept = async () => {
+    if (typeof Notification !== 'undefined' && Notification.requestPermission) {
+      try {
+        await Notification.requestPermission();
+      } catch (error) {
+        // Ignore permission errors; still allow flow to continue
+      }
+    }
+    onComplete({ enabled: true, time }, `Yes, remind me at ${time}`);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      className="flex items-end gap-3 w-full"
+    >
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#E07B39] to-[#C86A2E] flex items-center justify-center text-white shrink-0 shadow-md transform -translate-y-1">
+        <PawPrint className="w-4 h-4" />
+      </div>
+      <div className="max-w-[85%] p-4 shadow-sm bg-white text-gray-800 rounded-2xl rounded-bl-none border border-gray-100">
+        <p className="text-sm text-gray-700 mb-3">{step.message}</p>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xs text-gray-500">Remind me at</span>
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="text-xs font-medium bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-gray-700"
+          />
+        </div>
+        <div className="space-y-2">
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            onClick={handleAccept}
+            className="w-full py-2.5 bg-[#E07B39] text-white rounded-xl font-medium text-sm hover:bg-[#C86A2E] transition-colors"
+          >
+            {step.buttonText}
+          </motion.button>
+
+          {step.secondaryButtonText && (
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onComplete({ enabled: false, time: null }, step.secondaryButtonText)}
+              className="w-full py-2.5 bg-gray-50 text-gray-500 rounded-xl font-medium text-sm hover:bg-gray-100 transition-colors"
+            >
+              {step.secondaryButtonText}
+            </motion.button>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
   const [messages, setMessages] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -16,6 +75,7 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
   const [isThinking, setIsThinking] = useState(false);
   const [responses, setResponses] = useState({});
   const [thinkingCount, setThinkingCount] = useState(0);
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
   const scrollRef = useRef(null);
   const dogName = data.dogName || 'your dog';
 
@@ -44,11 +104,14 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
-  }, [messages, isTyping, isThinking]);
+    // Don't scroll if the user is actively interacting with form elements
+    if (!isUserInteracting) {
+      scrollRef.current?.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [messages, isTyping, isThinking, isUserInteracting]);
 
   // Show initial message on mount (with ref to prevent StrictMode double-render)
   const initialMessageShown = useRef(false);
@@ -377,10 +440,20 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
             question={step.question}
             items={step.items}
             dogName={dogName}
+            onInteractionStart={() => setIsUserInteracting(true)}
+            onInteractionEnd={() => setIsUserInteracting(false)}
             onComplete={(values, summary) => {
               const displaySummary = step.summaryTemplate?.(values) || summary;
               handleStepComplete(step.id, values, processText(displaySummary));
             }}
+          />
+        );
+
+      case 'notification':
+        return (
+          <NotificationPrompt
+            step={step}
+            onComplete={(value, summary) => handleStepComplete(step.id, value, summary)}
           />
         );
 

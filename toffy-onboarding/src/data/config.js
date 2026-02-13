@@ -1,3 +1,9 @@
+// --- Subscription & Trial Configuration ---
+export const SUBSCRIPTION_CONFIG = {
+  trialLength: 3, // days
+  planDurationLabel: 'Unlimited access while subscribed',
+};
+
 // --- Backend API Endpoints (Mocked for Demo) ---
 export const API_ENDPOINTS = {
   AUTH: {
@@ -530,10 +536,11 @@ export const ONBOARDING_FLOW = [
   // Step: Notification reminder
   {
     id: 'notification_reminder',
-    type: 'intro',
-    message: "One last thing! Consistency is the #1 factor for success with {name}. Would you like to turn on notifications so you don't forget your daily training sessions?",
-    buttonText: "Turn on notifications",
-    secondaryButtonText: "Maybe later",
+    type: 'notification',
+    message: "Want a reminder at this time?",
+    buttonText: "Yes, remind me",
+    secondaryButtonText: "Not now",
+    defaultTime: '19:00',
     credential: "Trainers see 3x better results when owners stay consistent",
   },
 
@@ -547,11 +554,11 @@ export const ONBOARDING_FLOW = [
 
 // --- Generation Steps ---
 export const GENERATION_STEPS = [
-  { id: 1, label: "Analyzing {dogName}'s profile" },
-  { id: 2, label: "Calculating leadership & boundaries scores" },
-  { id: 3, label: "Evaluating daily essentials" },
-  { id: 4, label: "Matching with expert techniques" },
-  { id: 5, label: "Building your custom plan" },
+  { id: 1, label: "Analyzing {dogName}'s profile", badge: null },
+  { id: 2, label: "Calculating leadership & boundaries", badge: 'leadership' },
+  { id: 3, label: "Evaluating daily essentials", badge: 'essentials' },
+  { id: 4, label: "Measuring reactivity levels", badge: 'reactivity' },
+  { id: 5, label: "Building your custom plan", badge: null },
 ];
 
 // --- Plan Structure ---
@@ -639,7 +646,8 @@ export const computeDiagnosisScores = (chatResponses) => {
     l1.approach_signal === true,
     l1.playtime_signal === true,
   ].filter(Boolean).length;
-  const leadership = Math.round((leadershipGood / 6) * 100);
+  const leadershipTotal = 6;
+  const leadership = Math.round((leadershipGood / leadershipTotal) * 100);
 
   // Boundaries score from leadership_2 answers
   const l2 = chatResponses.leadership_2 || {};
@@ -650,12 +658,14 @@ export const computeDiagnosisScores = (chatResponses) => {
     !l2.move_around,
     l2.designated_spot === true,
   ].filter(Boolean).length;
-  const boundaries = Math.round((boundaryGood / 5) * 100);
+  const boundariesTotal = 5;
+  const boundaries = Math.round((boundaryGood / boundariesTotal) * 100);
 
   // Essentials score from five_things answers
   const ft = chatResponses.five_things || {};
   const essentialsCount = Object.values(ft).filter(Boolean).length;
-  const essentials = Math.round((essentialsCount / 5) * 100);
+  const essentialsTotal = 5;
+  const essentials = Math.round((essentialsCount / essentialsTotal) * 100);
 
   // Reactivity score from sensitivities (inverted — higher = more reactive = worse)
   const sens = chatResponses.sensitivities || {};
@@ -664,10 +674,105 @@ export const computeDiagnosisScores = (chatResponses) => {
     ? Math.round(sensValues.reduce((a, b) => a + b, 0) / sensValues.length)
     : 20;
 
-  return { leadership, boundaries, essentials, reactivity };
+  return {
+    leadership,
+    boundaries,
+    essentials,
+    reactivity,
+    counts: {
+      leadership: { positive: leadershipGood, total: leadershipTotal },
+      boundaries: { positive: boundaryGood, total: boundariesTotal },
+      essentials: { positive: essentialsCount, total: essentialsTotal },
+    }
+  };
 };
 
-export const getDiagnosisNarrative = (dogName, scores, goal) => {
+const getEvidencePhrases = (dogName, chatResponses = {}) => {
+  const phrases = [];
+  const l1 = chatResponses.leadership_1 || {};
+  const l2 = chatResponses.leadership_2 || {};
+  const ft = chatResponses.five_things || {};
+  const sens = chatResponses.sensitivities || {};
+
+  const pushPhrase = (key, priority, text) => {
+    phrases.push({ key, priority, text });
+  };
+
+  if (l2.recall_repeat) pushPhrase('recall_repeat', 3, `${dogName} often needs multiple recalls to respond`);
+  if (l2.furniture_invite) pushPhrase('furniture_invite', 3, `${dogName} jumps on furniture without being invited`);
+  if (l1.leash_pull) pushPhrase('leash_pull', 2, `${dogName} pulls on the leash during walks`);
+  if (!l1.door_wait) pushPhrase('door_wait', 2, `${dogName} doesn't wait at doors`);
+  if (l1.raise_voice) pushPhrase('raise_voice', 1, `corrections escalate to raised voices`);
+
+  if (!ft.training) pushPhrase('training', 2, `daily training hasn't been consistent yet`);
+  if (!ft.walks) pushPhrase('walks', 1, `long walks aren't happening regularly`);
+  if (!ft.sensory) pushPhrase('sensory', 1, `sensory enrichment is still limited`);
+
+  const sensLabels = {
+    resource_guarding: 'resource guarding',
+    sound: 'sound sensitivity',
+    movement: 'movement sensitivity',
+    touch: 'touch sensitivity',
+    food: 'food aggression',
+  };
+  const topSensitivity = Object.entries(sens)
+    .filter(([, v]) => v > 50)
+    .sort((a, b) => b[1] - a[1])[0];
+  if (topSensitivity) {
+    const [key] = topSensitivity;
+    const label = sensLabels[key] || key;
+    pushPhrase(`sens_${key}`, 2, `${dogName} shows reactivity around ${label}`);
+  }
+
+  return phrases
+    .sort((a, b) => b.priority - a.priority)
+    .map(item => item.text);
+};
+
+export const getDiagnosisEvidence = (dogName, chatResponses = {}, limit = 2) => {
+  return getEvidencePhrases(dogName, chatResponses).slice(0, limit);
+};
+
+export const getScoreEvidence = (chatResponses = {}) => {
+  const l1 = chatResponses.leadership_1 || {};
+  const l2 = chatResponses.leadership_2 || {};
+  const ft = chatResponses.five_things || {};
+  const sens = chatResponses.sensitivities || {};
+
+  const leadership = [];
+  if (l2.recall_repeat) leadership.push('recall repeats');
+  if (l2.furniture_invite) leadership.push('furniture invited');
+  if (l1.leash_pull) leadership.push('leash pulling');
+  if (!l1.door_wait) leadership.push('door manners');
+
+  const essentials = [];
+  if (!ft.training) essentials.push('training gaps');
+  if (!ft.walks) essentials.push('walk gaps');
+  if (!ft.sensory) essentials.push('enrichment gaps');
+  if (!ft.diet) essentials.push('diet gaps');
+  if (!ft.bonding) essentials.push('bonding gaps');
+
+  const reactivity = [];
+  const sensLabels = {
+    resource_guarding: 'resource guarding',
+    sound: 'sound sensitivity',
+    movement: 'movement sensitivity',
+    touch: 'touch sensitivity',
+    food: 'food aggression',
+  };
+  Object.entries(sens)
+    .filter(([, v]) => v > 50)
+    .slice(0, 2)
+    .forEach(([key]) => reactivity.push(sensLabels[key] || key));
+
+  return {
+    leadership,
+    essentials,
+    reactivity,
+  };
+};
+
+export const getDiagnosisNarrative = (dogName, scores, goal, chatResponses = {}) => {
   const weakAreas = [];
   if (scores.leadership < 50) weakAreas.push('leadership structure');
   if (scores.boundaries < 50) weakAreas.push('boundary consistency');
@@ -681,11 +786,25 @@ export const getDiagnosisNarrative = (dogName, scores, goal) => {
   };
   const goalLabel = goalLabels[goal] || 'training goals';
 
+  const evidence = getEvidencePhrases(dogName, chatResponses).slice(0, 2);
+  const evidenceLine = evidence.length
+    ? `Because ${evidence.join(' and ')}, we'll focus first on ${weakAreas.length > 0 ? weakAreas.join(' and ') : `${goalLabel} foundations`}.`
+    : null;
+
   if (weakAreas.length === 0) {
-    return `${dogName} has a solid foundation across leadership, boundaries, and daily care. Your ${goalLabel} goal is very achievable — we just need to channel this foundation into targeted exercises.`;
+    return [
+      `${dogName} has a solid foundation across leadership, boundaries, and daily care.`,
+      evidenceLine,
+      `Your ${goalLabel} goal is very achievable — we just need to channel this foundation into targeted exercises.`,
+    ].filter(Boolean).join(' ');
   }
 
-  return `${dogName}'s assessment shows that ${weakAreas.join(' and ')} ${weakAreas.length === 1 ? 'needs' : 'need'} attention. This is directly connected to your ${goalLabel} challenges. The good news: these are exactly the areas your plan targets first.`;
+  return [
+    evidenceLine,
+    `${dogName}'s assessment shows that ${weakAreas.join(' and ')} ${weakAreas.length === 1 ? 'needs' : 'need'} attention.`,
+    `This is directly connected to your ${goalLabel} challenges.`,
+    `The good news: these are exactly the areas your plan targets first.`,
+  ].filter(Boolean).join(' ');
 };
 
 export const getEscalationWarning = (dogName, age, severity, goal) => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { PawPrint, Calendar, Clock, BookOpen, ChevronRight, Star, Sparkles, Home, Dumbbell, BarChart3, MessageCircle, User, ArrowRight, X } from 'lucide-react';
-import { getPlanDays } from '../data/config';
+import { PawPrint, Calendar, Clock, BookOpen, Star, Sparkles, Home, Dumbbell, BarChart3, MessageCircle, User, ArrowRight, Lock } from 'lucide-react';
+import { getPlanDays, SUBSCRIPTION_CONFIG } from '../data/config';
 import confetti from 'canvas-confetti';
 import PaywallScreen from './PaywallScreen';
 
@@ -15,6 +15,7 @@ export const PlanScreen = ({ data, setCurrentScreen }) => {
 
   // State for paywall
   const [showPaywall, setShowPaywall] = useState(false);
+  const [unlockedDay, setUnlockedDay] = useState(1);
 
   // Celebration confetti on mount
   useEffect(() => {
@@ -29,6 +30,16 @@ export const PlanScreen = ({ data, setCurrentScreen }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleDayStart = (dayNumber) => {
+    if (dayNumber <= 3) {
+      setUnlockedDay((prev) => Math.max(prev, dayNumber + 1));
+      return;
+    }
+    if (unlockedDay > 3) {
+      setShowPaywall(true);
+    }
+  };
+
   return (
     <div className="h-full bg-bg-cream flex flex-col relative">
       {/* Trial Banner */}
@@ -39,7 +50,7 @@ export const PlanScreen = ({ data, setCurrentScreen }) => {
       >
         <div className="flex items-center gap-2">
           <span className="text-lg">🎉</span>
-          <h3 className="font-bold text-[#2E5A4C] text-sm">Enjoy 3 day free trial</h3>
+          <h3 className="font-bold text-[#2E5A4C] text-sm">Enjoy {SUBSCRIPTION_CONFIG.trialLength} day free trial</h3>
         </div>
       </motion.div>
 
@@ -107,7 +118,11 @@ export const PlanScreen = ({ data, setCurrentScreen }) => {
       {/* Day Cards */}
       <div className="flex-1 overflow-y-auto px-4 pb-20">
         <div className="space-y-3">
-          {planDays.map((day, idx) => (
+          {planDays.map((day, idx) => {
+            const isUnlocked = day.day <= unlockedDay;
+            const isTrialDay = day.day <= 3;
+            const canTriggerPaywall = day.day > 3 && unlockedDay > 3;
+            return (
             <motion.div
               key={day.day}
               initial={{ opacity: 0, x: -20 }}
@@ -145,20 +160,36 @@ export const PlanScreen = ({ data, setCurrentScreen }) => {
                 </div>
 
                 {/* Arrow / Start button for Day 1 */}
-                {idx === 0 ? (
+                {isUnlocked && isTrialDay ? (
                   <button
-                    onClick={() => setShowPaywall(true)}
+                    onClick={() => handleDayStart(day.day)}
                     className="flex items-center gap-1 bg-white text-[#E07B39] px-3 py-1.5 rounded-lg font-semibold text-sm shrink-0"
                   >
                     <PawPrint className="w-4 h-4" />
                     Start
                   </button>
+                ) : canTriggerPaywall ? (
+                  <button
+                    onClick={() => setShowPaywall(true)}
+                    className="flex items-center gap-1 bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg font-semibold text-sm shrink-0"
+                  >
+                    <Lock className="w-4 h-4" />
+                    Unlock
+                  </button>
+                ) : !isUnlocked && isTrialDay ? (
+                  <span className="flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                    <Lock className="w-4 h-4" />
+                    Complete Day {day.day - 1} to unlock
+                  </span>
                 ) : (
-                  <ChevronRight className="w-5 h-5 shrink-0 text-gray-300" />
+                  <span className="flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                    <Lock className="w-4 h-4" />
+                    Complete Day 3 to unlock
+                  </span>
                 )}
               </div>
             </motion.div>
-          ))}
+          )})}
         </div>
       </div>
 
@@ -192,6 +223,7 @@ export const PlanScreen = ({ data, setCurrentScreen }) => {
       {showPaywall && (
         <div className="absolute inset-0 z-50">
           <PaywallScreen
+            dogName={dogName}
             onSubscribe={() => {
               // Handle subscription logic
               console.log('User subscribed');

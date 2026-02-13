@@ -5,7 +5,7 @@
  * In production, these would be real fetch/axios calls.
  */
 
-import { QUESTIONS_BY_PROBLEM, PROBLEMS, getPlanDays } from '../data/config';
+import { QUESTIONS_BY_PROBLEM, PROBLEMS, getPlanDays, SUBSCRIPTION_CONFIG } from '../data/config';
 
 // Simulate network delay
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -116,7 +116,7 @@ export const planAPI = {
         problemId,
         days,
         createdAt: new Date().toISOString(),
-        trialEndsAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        trialEndsAt: new Date(Date.now() + SUBSCRIPTION_CONFIG.trialLength * 24 * 60 * 60 * 1000).toISOString(),
       },
     };
   },
