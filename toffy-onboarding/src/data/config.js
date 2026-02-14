@@ -377,9 +377,8 @@ export const ONBOARDING_FLOW = [
   {
     id: 'leadership_intro',
     type: 'intro',
-    message: "Now let's understand your relationship with {name}. These questions help me see the pack dynamics.",
+    message: "These questions help us understand how {name} experiences their world. Each one may feel small on its own, but together they reveal patterns in behaviour, routine, and communication signals.\n\nAnswer honestly — Toffy uses these signals to identify what's driving the behaviour, and how to adjust training in a way {name} can actually respond to.",
     buttonText: "Let's go",
-    credential: "These questions come from canine behavioral research on pack dynamics",
   },
   {
     id: 'leadership_1',
@@ -429,9 +428,8 @@ export const ONBOARDING_FLOW = [
   {
     id: 'five_things_intro',
     type: 'intro',
-    message: "Great! Now let's check if {name} is getting the essentials every dog needs.",
+    message: "The next set of questions determines if {name} has a balanced life. It's easy to tweak their lifestyle if we know exactly where we're lacking.",
     buttonText: "Check essentials",
-    credential: "Based on veterinary behavioral guidelines",
   },
   {
     id: 'five_things',
@@ -462,9 +460,8 @@ export const ONBOARDING_FLOW = [
   {
     id: 'sensitivities_intro',
     type: 'intro',
-    message: "Now let's check how {name} reacts to specific triggers. This helps me understand their stress thresholds.",
-    buttonText: "Check reactivity",
-    credential: "Based on certified veterinary behaviorist screening protocols",
+    message: "Sensitivities and triggers are mostly genetic or trauma-based — this could be no fault of yours. Let's see what triggers {name} has, so we can move forward safely.",
+    buttonText: "Check triggers",
   },
   {
     id: 'sensitivities',
@@ -829,6 +826,58 @@ export const getEscalationWarning = (dogName, age, severity, goal) => {
     return `With a severity level this high, ${issue} typically escalate over time without structured intervention. Each week of delay makes correction harder.`;
   }
   return `Left unaddressed, ${issue} tend to gradually worsen. Starting now means faster results and less frustration for both you and ${dogName}.`;
+};
+
+export const getDiagnosisSplit = (dogName, chatResponses = {}, age, goal) => {
+  const scores = computeDiagnosisScores(chatResponses);
+
+  // --- Message 1: Root cause diagnosis ---
+  const evidence = getEvidencePhrases(dogName, chatResponses).slice(0, 3);
+
+  const weakAreas = [];
+  if (scores.leadership < 50) weakAreas.push('leadership structure');
+  if (scores.boundaries < 50) weakAreas.push('boundary consistency');
+  if (scores.essentials < 60) weakAreas.push('daily essentials');
+
+  const goalLabels = {
+    potty: 'potty training',
+    leash: 'leash behavior',
+    obedience: 'obedience',
+    behavior: 'behavior issues',
+  };
+  const goalLabel = goalLabels[goal] || 'training goals';
+
+  let explanation;
+  if (weakAreas.length === 0) {
+    explanation = `${dogName} has a solid foundation across the board. Your plan will fine-tune what's working and channel it toward your ${goalLabel} goal.`;
+  } else {
+    explanation = `These patterns tell me ${dogName} hasn't learned clear ${weakAreas[0]} yet — which is directly connected to your ${goalLabel} challenges.`;
+  }
+
+  // --- Message 2: Consequences + plan connection ---
+  const severity = Math.max(
+    100 - scores.leadership,
+    100 - scores.boundaries,
+    100 - scores.essentials,
+    scores.reactivity
+  );
+  const warning = getEscalationWarning(dogName, age, severity, goal);
+
+  const planConnection = weakAreas.length > 0
+    ? `That's why your plan starts with ${weakAreas[0]} — the foundation that makes ${goalLabel} stick.`
+    : `Your plan is designed to build on this foundation and target ${goalLabel} directly.`;
+
+  const planData = getPlanDays(goal, dogName);
+  const days = planData[goal] || planData.default;
+  const planPreview = days.slice(0, 3).map(d => ({
+    label: `Day ${d.day}`,
+    title: d.title,
+  }));
+
+  return {
+    rootCause: { evidence, explanation },
+    consequence: { warning, planConnection, planPreview },
+  };
 };
 
 export const getMirrorSummary = (dogName, chatResponses) => {

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, PawPrint, Brain, Sparkles, Cpu } from 'lucide-react';
-import { ONBOARDING_FLOW } from '../data/config';
+import { ONBOARDING_FLOW, computeDiagnosisScores, getDiagnosisSplit } from '../data/config';
 import { VisualGridPicker } from '../components/ui/VisualGridPicker';
 import { SpeedRound } from '../components/ui/SpeedRound';
 import { SliderBubble } from '../components/ui/SliderBubble';
@@ -168,45 +168,25 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
 
   const generateThinkingSteps = (stepId, value, summary, updatedResponses, index) => {
     switch (stepId) {
-      case 'leadership_2': {
-        const leadershipLine = getLeadershipHighlights(updatedResponses.leadership_1);
-        const boundaryLine = summary || 'Boundary insights recorded.';
+      case 'leadership_2':
         return [
-          { id: `leadership-${index}-1`, label: 'Reviewing leadership cues from your answers.', icon: 'search' },
-          { id: `leadership-${index}-2`, label: leadershipLine, icon: 'brain' },
-          { id: `leadership-${index}-3`, label: `Boundary read: ${boundaryLine}`, icon: 'target' },
-          { id: `leadership-${index}-4`, label: `Linking this to leadership drills for ${dogName}.`, icon: 'sparkles' },
+          { id: `leadership-${index}-1`, label: 'Leadership & boundary patterns noted.', icon: 'brain' },
         ];
-      }
-      case 'five_things': {
-        const essentialsLine = summary || 'Essentials snapshot logged.';
-        const focusLine = getEssentialsFocus(value);
+      case 'five_things':
         return [
-          { id: `essentials-${index}-1`, label: `Daily essentials snapshot: ${essentialsLine}`, icon: 'clipboard' },
-          { id: `essentials-${index}-2`, label: focusLine, icon: 'sparkles' },
+          { id: `essentials-${index}-1`, label: 'Daily essentials assessed.', icon: 'clipboard' },
         ];
-      }
-      case 'sensitivities': {
-        const sensValues = typeof value === 'object' ? Object.values(value) : [];
-        const reactiveCount = sensValues.filter(v => v > 50).length;
-        const avgReactivity = sensValues.length > 0 ? Math.round(sensValues.reduce((a, b) => a + b, 0) / sensValues.length) : 0;
-        const reactLabel = reactiveCount === 0 ? 'Low reactivity across all areas.' : `${reactiveCount} reactive trigger${reactiveCount > 1 ? 's' : ''} flagged.`;
+      case 'sensitivities':
         return [
-          { id: `sens-${index}-1`, label: `Scanning ${dogName}'s reactivity profile.`, icon: 'search' },
-          { id: `sens-${index}-2`, label: reactLabel, icon: 'brain' },
-          { id: `sens-${index}-3`, label: `Avg. reactivity: ${avgReactivity}% — calibrating plan intensity.`, icon: 'gauge' },
+          { id: `sens-${index}-1`, label: 'Reactivity profile mapped.', icon: 'brain' },
         ];
-      }
-      case 'severity': {
-        const descriptor = getSeverityDescriptor(typeof value === 'number' ? value : 50);
+      case 'severity':
         return [
-          { id: `severity-${index}-1`, label: `Calibrating plan for ${descriptor}.`, icon: 'gauge' },
+          { id: `severity-${index}-1`, label: 'Plan intensity calibrated.', icon: 'gauge' },
         ];
-      }
       default:
         return [
           { id: `default-${index}-1`, label: 'Processing your responses.', icon: 'cpu' },
-          { id: `default-${index}-2`, label: 'Mapping next best actions.', icon: 'sparkles' },
         ];
     }
   };
@@ -225,6 +205,79 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
 
   const addAcknowledgement = (text) => {
     setMessages(prev => [...prev, { type: 'acknowledgement', text }]);
+  };
+
+  const getSummaryData = (chatResponses) => {
+    const scores = computeDiagnosisScores(chatResponses);
+
+    const getLevel = (score, inverted) => {
+      if (inverted) {
+        if (score <= 30) return { level: 'Low', color: 'text-green-600', bg: 'bg-green-50' };
+        if (score <= 60) return { level: 'Moderate', color: 'text-amber-600', bg: 'bg-amber-50' };
+        return { level: 'High', color: 'text-red-500', bg: 'bg-red-50' };
+      }
+      if (score >= 71) return { level: 'Strong', color: 'text-green-600', bg: 'bg-green-50' };
+      if (score >= 41) return { level: 'Developing', color: 'text-amber-600', bg: 'bg-amber-50' };
+      return { level: 'Needs work', color: 'text-red-500', bg: 'bg-red-50' };
+    };
+
+    const areas = [
+      { key: 'leadership', name: 'Leadership', icon: '👑', score: scores.leadership, ...getLevel(scores.leadership, false) },
+      { key: 'boundaries', name: 'Boundaries', icon: '🚧', score: scores.boundaries, ...getLevel(scores.boundaries, false) },
+      { key: 'essentials', name: 'Essentials', icon: '🎯', score: scores.essentials, ...getLevel(scores.essentials, false) },
+      { key: 'reactivity', name: 'Reactivity', icon: '⚡', score: scores.reactivity, ...getLevel(scores.reactivity, true) },
+    ];
+
+    const weakAreas = [];
+    if (scores.leadership < 50) weakAreas.push('leadership');
+    if (scores.boundaries < 50) weakAreas.push('boundaries');
+    if (scores.essentials < 60) weakAreas.push('essentials');
+    if (scores.reactivity > 50) weakAreas.push('reactivity');
+
+    const goalLabels = { potty: 'potty training', leash: 'leash behavior', obedience: 'obedience', behavior: 'behavior issues' };
+    const goal = goalLabels[chatResponses.goal] || 'training';
+
+    let narrative;
+    if (weakAreas.length === 0) {
+      narrative = `${dogName} has a strong foundation. Your plan will fine-tune what's working and target your ${goal} goal.`;
+    } else {
+      const focus = weakAreas.slice(0, 2).join(' & ');
+      narrative = `Your plan will prioritize ${focus} — the areas most connected to your ${goal} goal.`;
+    }
+
+    // Split diagnosis for two-message narrative
+    const age = chatResponses.age || 'adult';
+    const goalKey = chatResponses.goal || 'potty';
+    const split = getDiagnosisSplit(dogName, chatResponses, age, goalKey);
+
+    return { areas, narrative, split };
+  };
+
+  const showSummaryAndCTA = (chatResponses) => {
+    const summaryData = getSummaryData(chatResponses);
+    setIsTyping(true);
+
+    // Message 1: Diagnosis with score grid + evidence
+    setTimeout(() => {
+      setIsTyping(false);
+      setMessages(prev => [...prev, {
+        type: 'diagnosis',
+        data: {
+          areas: summaryData.areas,
+          rootCause: summaryData.split.rootCause,
+        },
+      }]);
+
+      // Message 2: Consequence + plan connection (staggered)
+      setIsTyping(true);
+      setTimeout(() => {
+        setIsTyping(false);
+        setMessages(prev => [...prev, {
+          type: 'consequence',
+          data: summaryData.split.consequence,
+        }]);
+      }, 1500);
+    }, 1000);
   };
 
   const handleStepComplete = (stepId, value, displayText) => {
@@ -285,12 +338,7 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
       if (nextStep < ONBOARDING_FLOW.length) {
         const nextFlow = ONBOARDING_FLOW[nextStep];
         if (nextFlow.type === 'complete') {
-          setTimeout(() => {
-            addUserResponse("Let's see my plan!");
-            setTimeout(() => {
-              onNext();
-            }, 1000);
-          }, 600);
+          showSummaryAndCTA(newResponses);
         } else {
           setCurrentStep(nextStep);
           setTimeout(() => showBotMessage(nextFlow), 400);
@@ -321,13 +369,7 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
     if (nextStep < ONBOARDING_FLOW.length) {
       const nextFlow = ONBOARDING_FLOW[nextStep];
       if (nextFlow.type === 'complete') {
-        // Handle the complete step which transitions to the next screen
-        setTimeout(() => {
-          addUserResponse("Let's see my plan!");
-          setTimeout(() => {
-            onNext();
-          }, 1000);
-        }, 500);
+        showSummaryAndCTA(responses);
       } else {
         setCurrentStep(nextStep);
         setTimeout(() => showBotMessage(nextFlow), 400);
@@ -351,7 +393,7 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
               <PawPrint className="w-4 h-4" />
             </div>
             <div className="max-w-[85%] p-4 shadow-sm bg-white text-gray-800 rounded-2xl rounded-bl-none border border-gray-100">
-              <p className="text-sm text-gray-700 mb-4">{processText(step.message)}</p>
+              <p className="text-sm text-gray-700 mb-4 whitespace-pre-line">{processText(step.message)}</p>
               <div className="space-y-2">
                 <motion.button
                   whileTap={{ scale: 0.98 }}
@@ -533,6 +575,81 @@ export const ChatScreen = ({ onNext, onBack, data, updateData }) => {
                   </div>
                   <span className="text-[10px] text-[#E07B39]/80 font-medium">{msg.text}</span>
                 </div>
+              </motion.div>
+            ) : msg.type === 'diagnosis' ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              >
+                <div className="flex items-end gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#E07B39] to-[#C86A2E] flex items-center justify-center text-white shrink-0 shadow-md transform -translate-y-1">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div className="max-w-[85%] p-4 shadow-sm bg-white text-gray-800 rounded-2xl rounded-bl-none border border-gray-100">
+                    <p className="text-[11px] font-semibold text-[#E07B39] uppercase tracking-wide mb-2">{dogName}'s Assessment</p>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      {msg.data.areas.map((area) => (
+                        <div key={area.key} className={`${area.bg} rounded-lg p-2 flex items-center gap-2`}>
+                          <span className="text-base">{area.icon}</span>
+                          <div className="min-w-0">
+                            <p className="text-[10px] text-gray-500 leading-none">{area.name}</p>
+                            <p className={`text-xs font-semibold ${area.color} leading-tight`}>{area.level}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="border-t border-gray-100 pt-2 mt-1">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">How I figured this out</p>
+                      {msg.data.rootCause.evidence.length > 0 && (
+                        <ul className="space-y-1 mb-2">
+                          {msg.data.rootCause.evidence.map((item, i) => (
+                            <li key={i} className="text-xs text-gray-600 flex gap-1.5">
+                              <span className="text-gray-400 shrink-0">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <p className="text-sm text-gray-600 leading-relaxed">{msg.data.rootCause.explanation}</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : msg.type === 'consequence' ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="flex flex-col gap-3"
+              >
+                <div className="flex items-end gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#E07B39] to-[#C86A2E] flex items-center justify-center text-white shrink-0 shadow-md transform -translate-y-1">
+                    <PawPrint className="w-4 h-4" />
+                  </div>
+                  <div className="max-w-[85%] p-4 shadow-sm bg-white text-gray-800 rounded-2xl rounded-bl-none border border-gray-100">
+                    <p className="text-sm text-gray-600 leading-relaxed mb-2">{msg.data.warning}</p>
+                    <p className="text-sm text-gray-700 font-medium leading-relaxed mb-3">{msg.data.planConnection}</p>
+                    <div className="space-y-1.5">
+                      {msg.data.planPreview.map((day, i) => (
+                        <div key={i} className="flex items-center gap-2 bg-orange-50/60 rounded-lg px-2.5 py-1.5">
+                          <span className="text-[10px] font-bold text-[#E07B39] w-10 shrink-0">{day.label}</span>
+                          <span className="text-xs text-gray-700">{day.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={onNext}
+                  className="w-full py-3.5 bg-[#E07B39] text-white rounded-2xl font-semibold text-sm hover:bg-[#C86A2E] transition-colors shadow-md"
+                >
+                  View Your Plan →
+                </motion.button>
               </motion.div>
             ) : msg.type === 'acknowledgement' ? (
               <motion.div

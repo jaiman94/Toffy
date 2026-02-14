@@ -75,7 +75,7 @@ export const ThinkingProcess = ({ steps, onComplete }) => {
               <Cpu className="w-4 h-4" />
             </motion.div>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Reasoning Protocol</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#E07B39]/60">Toffy is thinking</span>
         </div>
         <div className="flex gap-1">
           {[0, 1, 2].map((i) => (
@@ -106,10 +106,10 @@ export const ThinkingProcess = ({ steps, onComplete }) => {
             <div key={step.id} className="relative">
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2.5">
-                  <div className={`p-1 rounded-md transition-colors duration-300 ${isCompleted ? 'bg-green-50' : isActive ? 'bg-[#E07B39]/10' : 'bg-gray-50'}`}>
-                    <IconComponent className={`w-3 h-3 ${isCompleted ? 'text-green-500' : isActive ? 'text-[#E07B39]' : 'text-gray-400'}`} />
+                  <div className={`p-1 rounded-md transition-colors duration-300 ${isCompleted ? 'bg-[#E07B39]/10' : isActive ? 'bg-[#E07B39]/10' : 'bg-gray-50'}`}>
+                    <IconComponent className={`w-3 h-3 ${isCompleted ? 'text-[#E07B39]' : isActive ? 'text-[#E07B39]' : 'text-gray-400'}`} />
                   </div>
-                  <span className={`text-[12px] font-medium transition-colors duration-300 ${isCompleted ? 'text-gray-400 line-through decoration-gray-300' : isActive ? 'text-gray-900' : 'text-gray-300'}`}>
+                  <span className={`text-[12px] font-medium transition-colors duration-300 ${isCompleted ? 'text-gray-500' : isActive ? 'text-gray-900' : 'text-gray-300'}`}>
                     {step.label}
                   </span>
                 </div>
@@ -119,8 +119,8 @@ export const ThinkingProcess = ({ steps, onComplete }) => {
                     animate={{ opacity: 1, x: 0 }}
                     className="flex items-center gap-1"
                   >
-                    <CheckCircle2 className="w-3 h-3 text-green-500" />
-                    <span className="text-[10px] text-green-600 font-bold">DONE</span>
+                    <CheckCircle2 className="w-3 h-3 text-[#E07B39]" />
+                    <span className="text-[10px] text-[#E07B39] font-bold">DONE</span>
                   </motion.div>
                 )}
                 {isActive && (
@@ -146,7 +146,7 @@ export const ThinkingProcess = ({ steps, onComplete }) => {
                     duration: isActive ? 1.2 : 0.3,
                     ease: "linear"
                   }}
-                  className={`h-full relative ${isCompleted ? 'bg-green-500/20' : isActive ? 'bg-[#E07B39]/20' : 'bg-transparent'}`}
+                  className={`h-full relative ${isCompleted ? 'bg-[#E07B39]/20' : isActive ? 'bg-[#E07B39]/20' : 'bg-transparent'}`}
                 >
                    {isActive && (
                     <motion.div 
@@ -157,7 +157,7 @@ export const ThinkingProcess = ({ steps, onComplete }) => {
                     />
                    )}
                    {isCompleted && (
-                     <div className="absolute inset-0 bg-green-500/10" />
+                     <div className="absolute inset-0 bg-[#E07B39]/10" />
                    )}
                 </motion.div>
                 
@@ -173,18 +173,6 @@ export const ThinkingProcess = ({ steps, onComplete }) => {
         })}
       </div>
 
-      <AnimatePresence>
-        {activeStep === totalSteps && totalSteps > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-2 p-2 rounded-lg bg-green-50 border border-green-100 flex items-center gap-2"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-green-600" />
-            <span className="text-[11px] text-green-700 font-semibold">Comprehension complete. Ready to proceed.</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

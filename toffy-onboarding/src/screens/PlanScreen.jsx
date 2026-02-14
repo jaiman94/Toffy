@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { PawPrint, Calendar, Clock, BookOpen, Star, Sparkles, Home, Dumbbell, BarChart3, MessageCircle, User, ArrowRight, Lock } from 'lucide-react';
+import { PawPrint, Calendar, Clock, BookOpen, Sparkles, Home, Dumbbell, BarChart3, MessageCircle, User, Lock } from 'lucide-react';
 import { getPlanDays, SUBSCRIPTION_CONFIG } from '../data/config';
 import confetti from 'canvas-confetti';
 import PaywallScreen from './PaywallScreen';
@@ -54,65 +54,51 @@ export const PlanScreen = ({ data, setCurrentScreen }) => {
         </div>
       </motion.div>
 
-      {/* Header Card - Clickable to learn more */}
+      {/* Header Card */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        className="mx-4 mt-3 p-6 bg-gradient-to-br from-[#E07B39] to-[#C86A2E] rounded-2xl text-white relative overflow-hidden cursor-pointer group"
-        onClick={() => console.log('Navigate to dog insights')}
+        className="mx-4 mt-3 p-4 bg-gradient-to-br from-[#E07B39] to-[#C86A2E] rounded-2xl text-white relative overflow-hidden"
       >
-        {/* Click hint */}
-        <div className="absolute top-3 right-3 opacity-60 group-hover:opacity-100 transition-opacity">
-          <ArrowRight className="w-5 h-5" />
-        </div>
         {/* Decorative elements */}
-        <div className="absolute top-2 right-2 opacity-20">
-          <Sparkles className="w-16 h-16" />
-        </div>
-        <div className="absolute bottom-2 left-2 opacity-20">
-          <Star className="w-8 h-8" />
+        <div className="absolute top-1 right-1 opacity-20">
+          <Sparkles className="w-12 h-12" />
         </div>
 
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-4xl">🐕</span>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center">
+              <span className="text-2xl">🐕</span>
             </div>
-            <div>
-              <h1 className="text-xl font-bold">{dogName}'s Plan</h1>
-              <p className="text-white/80 text-sm">Click to learn more about {dogName}</p>
-            </div>
+            <h1 className="text-lg font-bold">{dogName}'s Plan</h1>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-3 mt-4">
-            <div className="bg-white/20 rounded-xl p-3 text-center">
-              <Calendar className="w-5 h-5 mx-auto mb-1 opacity-80" />
-              <p className="text-lg font-bold">{planDays.length}</p>
-              <p className="text-xs opacity-80">Days</p>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-white/20 rounded-xl p-2 text-center">
+              <Calendar className="w-4 h-4 mx-auto mb-0.5 opacity-80" />
+              <p className="text-base font-bold">{planDays.length}</p>
+              <p className="text-[10px] opacity-80">Days</p>
             </div>
-            <div className="bg-white/20 rounded-xl p-3 text-center">
-              <BookOpen className="w-5 h-5 mx-auto mb-1 opacity-80" />
-              <p className="text-lg font-bold">{totalLessons}</p>
-              <p className="text-xs opacity-80">Lessons</p>
+            <div className="bg-white/20 rounded-xl p-2 text-center">
+              <BookOpen className="w-4 h-4 mx-auto mb-0.5 opacity-80" />
+              <p className="text-base font-bold">{totalLessons}</p>
+              <p className="text-[10px] opacity-80">Lessons</p>
             </div>
-            <div className="bg-white/20 rounded-xl p-3 text-center">
-              <Clock className="w-5 h-5 mx-auto mb-1 opacity-80" />
-              <p className="text-lg font-bold">{totalDuration}</p>
-              <p className="text-xs opacity-80">Minutes</p>
+            <div className="bg-white/20 rounded-xl p-2 text-center">
+              <Clock className="w-4 h-4 mx-auto mb-0.5 opacity-80" />
+              <p className="text-base font-bold">{totalDuration}</p>
+              <p className="text-[10px] opacity-80">Minutes</p>
             </div>
           </div>
         </div>
       </motion.div>
 
       {/* Plan Title */}
-      <div className="px-6 py-4">
-        <h2 className="text-lg font-bold text-gray-800">Your 7-Day Plan</h2>
-        <p className="text-sm text-gray-500">Complete one day at a time</p>
-        <p className="text-xs text-gray-400 mt-1">Consistency matters more than speed.</p>
+      <div className="px-5 pt-3 pb-2">
+        <h2 className="text-base font-bold text-gray-800">Your 7-Day Plan</h2>
+        <p className="text-xs text-gray-400">One day at a time. Consistency over speed.</p>
       </div>
 
       {/* Day Cards */}
@@ -128,63 +114,60 @@ export const PlanScreen = ({ data, setCurrentScreen }) => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className={`rounded-xl p-4 border ${idx === 0
+              className={`rounded-xl p-3 border ${idx === 0
                   ? 'bg-gradient-to-r from-[#E07B39] to-[#C86A2E] border-[#E07B39] shadow-lg shadow-[#E07B39]/30'
                   : 'bg-white border-gray-100 shadow-sm'
                 }`}
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-center gap-3">
                 {/* Day Number */}
-                <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 ${idx === 0 ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 ${idx === 0 ? 'bg-white/20 text-white' : 'bg-gray-50 text-gray-600'
                   }`}>
-                  <span className="text-xs font-medium opacity-80">Day</span>
-                  <span className="text-lg font-bold -mt-0.5">{day.day}</span>
+                  <span className="text-[9px] font-medium opacity-70 leading-none">Day</span>
+                  <span className="text-sm font-bold leading-tight">{day.day}</span>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <h3 className={`font-semibold ${idx === 0 ? 'text-white' : 'text-gray-800'}`}>{day.title}</h3>
-                  <p className={`text-sm mt-0.5 ${idx === 0 ? 'text-white/80' : 'text-gray-500'}`}>{day.description}</p>
-
-                  {/* Meta */}
-                  <div className="flex items-center gap-4 mt-2">
-                    <span className={`flex items-center gap-1 text-xs ${idx === 0 ? 'text-white/70' : 'text-gray-400'}`}>
-                      <BookOpen className="w-3.5 h-3.5" />
-                      {day.lessons} lessons
+                  <h3 className={`font-semibold text-sm ${idx === 0 ? 'text-white' : 'text-gray-800'}`}>{day.title}</h3>
+                  <div className="flex items-center gap-3 mt-0.5">
+                    <span className={`flex items-center gap-1 text-[11px] ${idx === 0 ? 'text-white/70' : 'text-gray-400'}`}>
+                      <BookOpen className="w-3 h-3" />
+                      {day.lessons}
                     </span>
-                    <span className={`flex items-center gap-1 text-xs ${idx === 0 ? 'text-white/70' : 'text-gray-400'}`}>
-                      <Clock className="w-3.5 h-3.5" />
+                    <span className={`flex items-center gap-1 text-[11px] ${idx === 0 ? 'text-white/70' : 'text-gray-400'}`}>
+                      <Clock className="w-3 h-3" />
                       {day.duration}
                     </span>
                   </div>
                 </div>
 
-                {/* Arrow / Start button for Day 1 */}
+                {/* Action */}
                 {isUnlocked && isTrialDay ? (
                   <button
                     onClick={() => handleDayStart(day.day)}
-                    className="flex items-center gap-1 bg-white text-[#E07B39] px-3 py-1.5 rounded-lg font-semibold text-sm shrink-0"
+                    className="flex items-center gap-1 bg-white text-[#E07B39] px-3 py-1.5 rounded-lg font-semibold text-xs shrink-0"
                   >
-                    <PawPrint className="w-4 h-4" />
+                    <PawPrint className="w-3.5 h-3.5" />
                     Start
                   </button>
                 ) : canTriggerPaywall ? (
                   <button
                     onClick={() => setShowPaywall(true)}
-                    className="flex items-center gap-1 bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg font-semibold text-sm shrink-0"
+                    className="flex items-center gap-1 bg-gray-100 text-gray-500 px-2.5 py-1.5 rounded-lg font-medium text-xs shrink-0"
                   >
-                    <Lock className="w-4 h-4" />
+                    <Lock className="w-3 h-3" />
                     Unlock
                   </button>
                 ) : !isUnlocked && isTrialDay ? (
-                  <span className="flex items-center gap-1 text-xs text-gray-400 shrink-0">
-                    <Lock className="w-4 h-4" />
-                    Complete Day {day.day - 1} to unlock
+                  <span className="flex items-center gap-1 text-[11px] text-gray-400 shrink-0">
+                    <Lock className="w-3 h-3" />
+                    Day {day.day - 1} first
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 text-xs text-gray-400 shrink-0">
-                    <Lock className="w-4 h-4" />
-                    Complete Day 3 to unlock
+                  <span className="flex items-center gap-1 text-[11px] text-gray-400 shrink-0">
+                    <Lock className="w-3 h-3" />
+                    Locked
                   </span>
                 )}
               </div>
